@@ -15,9 +15,9 @@ MainWindow::MainWindow(QWidget *parent) :
     // Receive
     connect(m_udpSocket, SIGNAL(readyRead()), this, SLOT(receiveMessage()));
 
-//    m_udpSocket->bind(45454, QAbstractSocket::ShareAddress);
+    m_udpSocket->bind(QHostAddress("192.168.2.1"), 45454, QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
 //    m_udpSocket->setLocalPort(45454);
-    m_sendTimer.start(1000);
+    //m_sendTimer.start(1000);
 }
 
 MainWindow::~MainWindow()
