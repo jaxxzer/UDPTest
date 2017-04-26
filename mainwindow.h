@@ -27,6 +27,9 @@ private:
     QTimer m_sendTimer;
     QUdpSocket* m_udpSocket;
 
+    QHostAddress m_sender;
+    quint16 m_senderPort;
+
 };
 
 #endif // MAINWINDOW_H

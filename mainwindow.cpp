@@ -15,9 +15,9 @@ MainWindow::MainWindow(QWidget *parent) :
     // Receive
     connect(m_udpSocket, SIGNAL(readyRead()), this, SLOT(receiveMessage()));
 
-    m_udpSocket->bind(QHostAddress("192.168.2.1"), 45454, QAbstractSocket::ShareAddress | QAbstractSocket::ReuseAddressHint);
-//    m_udpSocket->setLocalPort(45454);
-    //m_sendTimer.start(1000);
+    m_udpSocket->bind(QHostAddress("192.168.2.1"), 45454, QAbstractSocket::ShareAddress);
+
+    m_sendTimer.start(1000);
 }
 
 MainWindow::~MainWindow()
@@ -27,9 +27,12 @@ MainWindow::~MainWindow()
 
 void MainWindow::sendMessage(void)
 {
+    if (!m_senderPort) {
+        return;
+    }
     qDebug() << "Sending message";
-    QByteArray datagram = "\nBroadcast message";
-    m_udpSocket->writeDatagram(datagram.data(), datagram.size(), QHostAddress("192.168.2.1"), 45454);
+    QByteArray datagram = "\nAloha Back";
+    m_udpSocket->writeDatagram(datagram.data(), datagram.size(), m_sender, m_senderPort);
 }
 
 void MainWindow::receiveMessage(void)
@@ -37,7 +40,16 @@ void MainWindow::receiveMessage(void)
     while (m_udpSocket->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(m_udpSocket->pendingDatagramSize());
-        m_udpSocket->readDatagram(datagram.data(), datagram.size());
-        qDebug() << QString("Received datagram: %1").arg(datagram.data());
+        QHostAddress sender;
+        quint16 senderPort;
+
+        m_udpSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
+
+        qDebug() << "Received datagram:" << datagram.data() << sender << senderPort;
+
+        if (!m_senderPort) {
+            m_sender = sender;
+            m_senderPort = senderPort;
+        }
     }
 }
