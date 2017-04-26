@@ -27,9 +27,13 @@ private:
     QTimer m_sendTimer;
     QUdpSocket* m_udpSocket;
 
-    QHostAddress m_sender;
-    quint16 m_senderPort;
+    // Can be Remote or Local
+    QHostAddress m_client;
+    quint16 m_clientPort;
 
+    // Us
+    static const QHostAddress m_host;
+    static const quint16 m_hostPort;
 };
 
 #endif // MAINWINDOW_H

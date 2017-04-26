@@ -1,6 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+// Listen for udp traffic here, once we get traffic we start replying to the client
+const QHostAddress MainWindow::m_host = QHostAddress("localhost");
+const quint16 MainWindow::m_hostPort = 8989;
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -15,7 +19,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // Receive
     connect(m_udpSocket, SIGNAL(readyRead()), this, SLOT(receiveMessage()));
 
-    m_udpSocket->bind(QHostAddress("192.168.2.1"), 45454, QAbstractSocket::ShareAddress);
+    // Listen here
+    m_udpSocket->bind(m_host, m_hostPort, QAbstractSocket::ShareAddress);
 
     m_sendTimer.start(1000);
 }
@@ -25,16 +30,18 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+// Sends messages to the client port
 void MainWindow::sendMessage(void)
 {
-    if (!m_senderPort) {
-        return;
+    if (!m_clientPort) {
+        return; // We don't send anything until a client connects
     }
     qDebug() << "Sending message";
     QByteArray datagram = "\nAloha Back";
-    m_udpSocket->writeDatagram(datagram.data(), datagram.size(), m_sender, m_senderPort);
+    m_udpSocket->writeDatagram(datagram.data(), datagram.size(), m_client, m_clientPort);
 }
 
+// Listens for messages on the bound port
 void MainWindow::receiveMessage(void)
 {
     while (m_udpSocket->hasPendingDatagrams()) {
@@ -47,9 +54,10 @@ void MainWindow::receiveMessage(void)
 
         qDebug() << "Received datagram:" << datagram.data() << sender << senderPort;
 
-        if (!m_senderPort) {
-            m_sender = sender;
-            m_senderPort = senderPort;
+        // Start replying to the first client we hear from
+        if (!m_clientPort) {
+            m_client = sender;
+            m_clientPort = senderPort;
         }
     }
 }
